@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07080d" />
+  <meta name="description" content="Lumen Upscaler — enlarge low-resolution photos and art up to 8× with adaptive detail reconstruction. Everything runs privately in your browser." />
+  <title>Lumen — Local AI Image Upscaler</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23090b12'/%3E%3Cpath d='M16 6l7 7h-4v7h-6v-7H9z' fill='%237cf7c4'/%3E%3Crect x='9' y='23' width='14' height='3' rx='1.5' fill='%237aa2ff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+    <span class="grid-fade"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Lumen upscaler home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="9" fill="currentColor" fill-opacity=".12" />
+          <path d="M16 6.5l7 7h-4.1v6.4h-5.8v-6.4H9z" fill="var(--accent)" />
+          <rect x="9.5" y="22.5" width="13" height="2.6" rx="1.3" fill="var(--accent-2)" />
+        </svg>
+      </span>
+      <span class="brand-name">Lumen</span>
+      <span class="brand-tag">Upscaler</span>
+    </a>
+    <div class="privacy-pill">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3.2" y="7" width="9.6" height="7" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5.4 7V5.2a2.6 2.6 0 015.2 0V7" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span>Runs on your device</span>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <section class="hero" id="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="pulse-dot"></span> Adaptive detail reconstruction</p>
+        <h1>Small image.<br /><span class="gradient-text">Big presence.</span></h1>
+        <p class="lede">Enlarge low-resolution photos, art, and screenshots up to 8×. Lumen rebuilds edges and fills in fine detail locally — nothing is uploaded.</p>
+        <ul class="hero-points">
+          <li>
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.2 3.2 7.8-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Up to 8× with edge-aware sharpening
+          </li>
+          <li>
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.2 3.2 7.8-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Private, offline processing
+          </li>
+          <li>
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.2 3.2 7.8-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            PNG, JPG, WebP &amp; AVIF input
+          </li>
+        </ul>
+      </div>
+
+      <div class="upload-card" id="dropzone" tabindex="0" role="button" aria-label="Upload an image to upscale">
+        <input type="file" id="fileInput" accept="image/*" hidden />
+        <span class="corner corner-tl" aria-hidden="true"></span>
+        <span class="corner corner-tr" aria-hidden="true"></span>
+        <span class="corner corner-bl" aria-hidden="true"></span>
+        <span class="corner corner-br" aria-hidden="true"></span>
+
+        <div class="upload-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="6" width="36" height="36" rx="11" fill="url(#uploadGrad)" fill-opacity=".16"/>
+            <path d="M17 31l14-14M21.5 16H31v9.5" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M31 33H17" stroke="var(--accent-2)" stroke-width="2.4" stroke-linecap="round"/>
+            <defs><linearGradient id="uploadGrad" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#7cf7c4"/><stop offset="1" stop-color="#7aa2ff"/></linearGradient></defs>
+          </svg>
+        </div>
+        <h2>Drop an image to enlarge</h2>
+        <p class="upload-sub">PNG, JPG, WebP or AVIF <span aria-hidden="true">·</span> up to 32&nbsp;MP</p>
+        <button class="btn btn-primary" type="button" id="browseBtn">
+          <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 12.5v-8M5.8 7.2L9 4l3.2 3.2M3.5 12.5v1.3a1.7 1.7 0 001.7 1.7h7.6a1.7 1.7 0 001.7-1.7v-1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Choose image
+        </button>
+
+        <div class="samples">
+          <span class="samples-label">No image handy? Try a sample</span>
+          <div class="sample-row">
+            <button class="sample-btn" type="button" data-sample="cafe" title="Photo sample via Unsplash">
+              <canvas class="sample-thumb" id="thumbCafe" width="64" height="43" aria-hidden="true"></canvas>
+              <span class="sample-text"><strong>Cafe Study</strong><small>Photo via Unsplash</small></span>
+            </button>
+            <button class="sample-btn" type="button" data-sample="aurora">
+              <canvas class="sample-thumb" id="thumbAurora" width="64" height="43" aria-hidden="true"></canvas>
+              <span class="sample-text"><strong>Aurora Peaks</strong><small>Digital art · 360×240</small></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace" id="workspace" hidden aria-label="Upscaling workspace">
+      <div class="workspace-head">
+        <div class="file-info">
+          <span class="file-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="2.5" y="3.5" width="15" height="13" rx="3" stroke="currentColor" stroke-width="1.4"/><circle cx="7.2" cy="8" r="1.5" fill="currentColor"/><path d="M4.5 14l4.2-4.2 2.4 2.4 2-2 3 3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <div class="file-meta">
+            <strong id="fileName">image.png</strong>
+            <span id="fileDims">—</span>
+          </div>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-ghost" type="button" id="newBtn">
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3.5v11M3.5 9h11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            New image
+          </button>
+          <button class="btn btn-primary btn-download-top" type="button" id="downloadTop">
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3.5v8M5.8 8.5L9 11.7l3.2-3.2M3.5 13.2v.6a1.7 1.7 0 001.7 1.7h7.6a1.7 1.7 0 001.7-1.7v-.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download
+          </button>
+        </div>
+      </div>
+
+      <div class="workspace-grid">
+        <aside class="panel controls" aria-label="Upscaling settings">
+          <section class="control-group">
+            <div class="control-label"><span class="step">01</span> Upscale factor</div>
+            <div class="segmented" id="scaleGroup" role="radiogroup" aria-label="Upscale factor">
+              <button type="button" role="radio" aria-checked="false" data-scale="2">2×</button>
+              <button type="button" role="radio" aria-checked="true" class="is-active" data-scale="4">4×</button>
+              <button type="button" role="radio" aria-checked="false" data-scale="8">8×</button>
+            </div>
+            <p class="hint" id="scaleHint">Best balance of detail and speed.</p>
+          </section>
+
+          <section class="control-group">
+            <div class="control-label"><span class="step">02</span> Enhancement</div>
+            <div class="presets" id="presetGroup" role="radiogroup" aria-label="Enhancement preset">
+              <button type="button" role="radio" aria-checked="true" class="preset is-active" data-preset="natural">
+                <span class="preset-dot"></span><span><strong>Natural</strong><small>Balanced detail</small></span>
+              </button>
+              <button type="button" role="radio" aria-checked="false" class="preset" data-preset="crisp">
+                <span class="preset-dot"></span><span><strong>Crisp</strong><small>Punchy edges</small></span>
+              </button>
+              <button type="button" role="radio" aria-checked="false" class="preset" data-preset="illustration">
+                <span class="preset-dot"></span><span><strong>Illustration</strong><small>Art &amp; pixel work</small></span>
+              </button>
+              <button type="button" role="radio" aria-checked="false" class="preset" data-preset="restore">
+                <span class="preset-dot"></span><span><strong>Restore</strong><small>Smooth old scans</small></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="control-group">
+            <div class="control-label"><span class="step">03</span> Fine tuning</div>
+            <label class="slider-row" for="detailRange">
+              <span>Detail</span><output id="detailOut">58</output>
+            </label>
+            <input class="range" type="range" id="detailRange" min="0" max="100" value="58" />
+            <label class="slider-row" for="denoiseRange">
+              <span>Smoothing</span><output id="denoiseOut">32</output>
+            </label>
+            <input class="range" type="range" id="denoiseRange" min="0" max="100" value="32" />
+            <label class="slider-row" for="saturationRange">
+              <span>Color</span><output id="saturationOut">6</output>
+            </label>
+            <input class="range" type="range" id="saturationRange" min="0" max="100" value="6" />
+          </section>
+
+          <section class="control-group">
+            <div class="control-label"><span class="step">04</span> Export</div>
+            <div class="segmented segmented-sm" id="formatGroup" role="radiogroup" aria-label="Export format">
+              <button type="button" role="radio" aria-checked="true" class="is-active" data-format="png">PNG</button>
+              <button type="button" role="radio" aria-checked="false" data-format="jpeg">JPG</button>
+              <button type="button" role="radio" aria-checked="false" data-format="webp">WebP</button>
+            </div>
+            <div class="quality-wrap" id="qualityWrap" hidden>
+              <label class="slider-row" for="qualityRange"><span>Quality</span><output id="qualityOut">92%</output></label>
+              <input class="range" type="range" id="qualityRange" min="50" max="100" value="92" />
+            </div>
+            <button class="btn btn-primary btn-block" type="button" id="downloadBtn">
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3.5v8M5.8 8.5L9 11.7l3.2-3.2M3.5 13.2v.6a1.7 1.7 0 001.7 1.7h7.6a1.7 1.7 0 001.7-1.7v-.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span id="downloadLabel">Download PNG</span>
+            </button>
+            <p class="privacy-note">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3.2" y="7" width="9.6" height="7" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5.4 7V5.2a2.6 2.6 0 015.2 0V7" stroke="currentColor" stroke-width="1.3"/></svg>
+              Nothing leaves this tab. No account, no upload.
+            </p>
+          </section>
+        </aside>
+
+        <section class="panel preview" aria-label="Result preview">
+          <div class="preview-toolbar">
+            <div class="segmented segmented-sm view-tabs" id="viewTabs" role="tablist" aria-label="Preview mode">
+              <button type="button" role="tab" aria-selected="true" class="is-active" data-view="split">Split</button>
+              <button type="button" role="tab" aria-selected="false" data-view="original">Original</button>
+              <button type="button" role="tab" aria-selected="false" data-view="upscaled">Upscaled</button>
+            </div>
+            <button class="btn btn-mini" type="button" id="zoomBtn" aria-pressed="false">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.3" stroke="currentColor" stroke-width="1.4"/><path d="M10.3 10.3L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>1:1</span>
+            </button>
+          </div>
+
+          <div class="stage" id="stage">
+            <div class="compare" id="compare" data-mode="split">
+              <canvas id="beforeCanvas" width="1200" height="800" aria-label="Original image enlarged without enhancement">Original preview</canvas>
+              <div class="after-wrap" id="afterWrap">
+                <canvas id="afterCanvas" width="1200" height="800" aria-label="Enhanced upscaled result">Upscaled preview</canvas>
+              </div>
+              <div class="divider" id="divider" aria-hidden="true">
+                <span class="divider-handle">
+                  <svg viewBox="0 0 20 20" fill="none"><path d="M8 6l-3 4 3 4M12 6l3 4-3 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </div>
+              <span class="compare-tag tag-left">Upscaled</span>
+              <span class="compare-tag tag-right">Original</span>
+              <input class="split-range" type="range" id="splitRange" min="0" max="100" value="55" aria-label="Comparison position" />
+              <div class="stage-loading" id="stageLoading" hidden>
+                <div class="loader-card" role="status" aria-live="polite">
+                  <span class="spinner" aria-hidden="true"></span>
+                  <div>
+                    <strong id="loadingTitle">Enhancing pixels</strong>
+                    <span id="loadingSub">Applying adaptive detail…</span>
+                  </div>
+                  <div class="loader-track"><span id="loaderFill"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta-row" id="metaRow">
+            <span class="meta-chip" id="metaDims">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 6h5M5.5 8h5M5.5 10h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              —
+            </span>
+            <span class="meta-chip" id="metaScale">4× upscale</span>
+            <span class="meta-chip" id="metaPixels">— MP</span>
+            <span class="meta-chip" id="metaTime">—</span>
+          </div>
+          <p class="preview-hint">Drag the handle to compare. Toggle <strong>1:1</strong> to inspect pixels at native size.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="features" id="features" aria-label="Why Lumen">
+      <article class="feature">
+        <span class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 17l5-5 3.2 3.2L16 11l4 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/></svg>
+        </span>
+        <h3>Detail where it matters</h3>
+        <p>An edge-aware pass separates texture from noise, then rebuilds contrast and crispness without a plastic look.</p>
+      </article>
+      <article class="feature">
+        <span class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5.4c0 4.2-2.9 7.6-7 9.6-4.1-2-7-5.4-7-9.6V6l7-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8.8 12l2.2 2.2 4.2-4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Private by architecture</h3>
+        <p>The engine is a Web Worker running in this tab. Your image never touches a server, and there are no upload limits.</p>
+      </article>
+      <article class="feature">
+        <span class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5h9l5 5v10a1.5 1.5 0 01-1.5 1.5h-12A1.5 1.5 0 014 19.5v-13A2 2 0 016 4.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M14 4.5V10h5M8 15h8M8 18h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span>
+        <h3>Made to keep</h3>
+        <p>Export transparent PNGs, compact WebP, or high-quality JPGs at full resolution. No watermark, no sign-up.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Lumen Upscaler</span>
+    <span class="footer-dot" aria-hidden="true">·</span>
+    <span>Local detail reconstruction engine</span>
+    <span class="footer-spacer"></span>
+    <span class="footer-note">Non-generative. It reconstructs and sharpens existing detail.</span>
+  </footer>
+
+  <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+    <div class="drop-overlay-card">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 16v1.5A2.5 2.5 0 007.5 20h9a2.5 2.5 0 002.5-2.5V16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <strong>Drop to replace image</strong>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span class="toast-dot" aria-hidden="true"></span>
+    <span id="toastText"></span>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
