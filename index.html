@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#07100e" />
+<meta name="description" content="REWIND is a Wayback Machine compatibility layer: paste any URL and it finds the closest archived capture, repairs the context, and replays it in a sealed viewer." />
+<title>REWIND — Wayback Machine compatibility layer</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://archive.org" crossorigin />
+<link rel="preconnect" href="https://web.archive.org" crossorigin />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#rescue">Skip to the rescue bar</a>
+
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="site-header">
+  <a class="brand" href="#top" aria-label="REWIND home">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 3-6.7" />
+        <path d="M3 4v5h5" />
+      </svg>
+    </span>
+    <span class="brand-text">
+      <strong>REWIND</strong>
+      <small>wayback compatibility layer</small>
+    </span>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary">
+    <a href="#workspace">Viewer</a>
+    <a href="#timeline-section">Timeline</a>
+    <a href="#how">How it works</a>
+    <a href="#api">API</a>
+  </nav>
+
+  <div class="header-status">
+    <span class="status-pill" id="uplink-status" data-state="idle">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="uplink-label">Archive uplink idle</span>
+    </span>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span> Web archaeology unit // captures from 1996 onward</p>
+      <h1 class="hero-title">Make the dead web <em>work again.</em></h1>
+      <p class="hero-lede">
+        Paste any URL — a bare domain, a rotting forum post, a 404. REWIND canonicalizes it,
+        locates the closest <strong>Wayback Machine</strong> capture, and replays it in a sealed viewer
+        with archive-native link repair.
+      </p>
+
+      <form class="rescue-form" id="rescue-form" autocomplete="off" novalidate>
+        <div class="field field-url">
+          <span class="field-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18M12 3c2.6 2.7 4 5.9 4 9s-1.4 6.3-4 9c-2.6-2.7-4-5.9-4-9s1.4-6.3 4-9z" />
+            </svg>
+          </span>
+          <input
+            id="url-input"
+            name="url"
+            class="field-input"
+            type="text"
+            inputmode="url"
+            spellcheck="false"
+            placeholder="example.com, https://…, or a web.archive.org link"
+            aria-label="URL to recover from the Wayback Machine"
+          />
+          <button type="button" class="field-clear" id="clear-btn" aria-label="Clear URL" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+
+        <div class="field field-date">
+          <span class="field-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="16" rx="2" />
+              <path d="M3 10h18M8 3v4M16 3v4" />
+            </svg>
+          </span>
+          <label class="visually-hidden" for="date-input">Target date</label>
+          <input id="date-input" name="date" class="field-input" type="date" />
+          <span class="field-suffix">optional</span>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="submit-btn">
+          <span class="btn-spinner" aria-hidden="true"></span>
+          <span class="btn-label">Find capture</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
+      </form>
+
+      <div class="suggest-row">
+        <span class="suggest-label">Try</span>
+        <div class="suggest-chips" id="suggest-chips"></div>
+        <span class="key-hint"><kbd>/</kbd> focus <kbd>Enter</kbd> rescue</span>
+      </div>
+    </div>
+
+    <dl class="stats-strip">
+      <div class="stat"><dt>Index</dt><dd>Archive.org availability</dd></div>
+      <div class="stat"><dt>Range</dt><dd>1996 → <span id="stat-year">2026</span></dd></div>
+      <div class="stat"><dt>Mode</dt><dd>Archive-native replay</dd></div>
+      <div class="stat"><dt>Tracking</dt><dd>None. Ever.</dd></div>
+    </dl>
+  </section>
+
+  <section class="workspace" id="workspace" aria-live="polite">
+    <div class="workspace-head">
+      <div class="workspace-title">
+        <p class="section-label">Replay console</p>
+        <h2 id="result-title">Awaiting a URL</h2>
+        <p class="result-sub" id="result-sub">The closest capture will load here. Nothing is fetched until you ask for it.</p>
+      </div>
+      <div class="workspace-actions">
+        <a class="btn btn-ghost" id="btn-open" href="https://web.archive.org/" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
+          Open original
+        </a>
+        <button class="btn btn-ghost" id="btn-copy" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+          Copy archive link
+        </button>
+      </div>
+    </div>
+
+    <div class="workspace-grid">
+      <div class="viewer-card">
+        <div class="viewer-chrome">
+          <div class="chrome-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="address-bar">
+            <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <span id="viewer-url">web.archive.org/web/&hellip;</span>
+          </div>
+          <span class="chrome-badge" id="viewer-status">idle</span>
+        </div>
+
+        <div class="viewer-stage" id="viewer-stage">
+          <div class="viewer-empty" id="viewer-empty">
+            <div class="empty-art" aria-hidden="true">
+              <svg viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="10" y="12" width="100" height="56" rx="4" />
+                <path d="M10 26h100" />
+                <circle cx="19" cy="19" r="1.6" /><circle cx="26" cy="19" r="1.6" /><circle cx="33" cy="19" r="1.6" />
+                <path d="M46 44a14 14 0 1 0 5-10.8M46 36v8h8" />
+              </svg>
+            </div>
+            <h3>No capture loaded</h3>
+            <p>Enter a URL above and REWIND will pull the nearest available snapshot from the Internet Archive.</p>
+          </div>
+
+          <div class="viewer-loading" id="viewer-loading" hidden>
+            <div class="loader-bars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+            <p id="loading-text">Scanning archive index&hellip;</p>
+            <div class="skeleton" aria-hidden="true"><div class="skeleton-line w60"></div><div class="skeleton-line w90"></div><div class="skeleton-line w75"></div><div class="skeleton-block"></div></div>
+          </div>
+
+          <div class="viewer-error" id="viewer-error" hidden>
+            <h3>No capture found</h3>
+            <p id="error-text">The archive has no indexed snapshot for this URL.</p>
+            <div class="error-actions">
+              <button class="btn btn-ghost" id="error-retry">Try variants</button>
+              <a class="btn btn-ghost" id="error-search" href="https://web.archive.org/" target="_blank" rel="noopener noreferrer">Search archive.org</a>
+            </div>
+          </div>
+
+          <iframe
+            id="replay-frame"
+            title="Archived page replay"
+            hidden
+            referrerpolicy="no-referrer"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+            allow="fullscreen"
+          ></iframe>
+        </div>
+
+        <div class="viewer-foot">
+          <p id="viewer-caption">Replay by the Wayback Machine. Some captures refuse to be embedded — use <strong>Open original</strong> if the frame stays blank.</p>
+          <div class="viewer-foot-actions">
+            <button class="btn btn-mini" id="btn-raw" disabled>Raw capture</button>
+            <button class="btn btn-mini" id="btn-refresh" disabled>Reload</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <section class="panel" aria-labelledby="report-title">
+          <div class="panel-head">
+            <h3 id="report-title">Compatibility report</h3>
+            <button class="panel-action" id="btn-api" disabled>JSON</button>
+          </div>
+          <dl class="report" id="report">
+            <div class="report-row"><dt>Status</dt><dd id="rep-status" class="muted">No lookup yet</dd></div>
+            <div class="report-row"><dt>Canonical URL</dt><dd id="rep-canonical" class="mono muted">—</dd></div>
+            <div class="report-row"><dt>Closest capture</dt><dd id="rep-capture" class="muted">—</dd></div>
+            <div class="report-row"><dt>Resolution</dt><dd id="rep-resolution" class="muted">—</dd></div>
+            <div class="report-row"><dt>Protocol</dt><dd id="rep-protocol" class="muted">—</dd></div>
+            <div class="report-row"><dt>Index answer</dt><dd id="rep-latency" class="muted">—</dd></div>
+          </dl>
+          <p class="panel-note">Captures are read-only replays. REWIND never proxies or stores page content.</p>
+        </section>
+
+        <section class="panel" aria-labelledby="caps-title">
+          <div class="panel-head">
+            <h3 id="caps-title">Monthly probes</h3>
+            <span class="panel-tag" id="month-year-label">—</span>
+          </div>
+          <div class="month-grid" id="month-grid">
+            <p class="panel-empty">Pick a year on the timeline to probe its months.</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="history-title">
+          <div class="panel-head">
+            <h3 id="history-title">Recent rescues</h3>
+            <button class="panel-action" id="btn-clear-history">Clear</button>
+          </div>
+          <ul class="history-list" id="history-list">
+            <li class="panel-empty">Your recent lookups will collect here.</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <section class="timeline-section" id="timeline-section" aria-labelledby="timeline-title">
+    <div class="timeline-head">
+      <div>
+        <p class="section-label">Capture timeline</p>
+        <h2 id="timeline-title">Three decades of snapshots</h2>
+      </div>
+      <div class="timeline-legend">
+        <span class="legend-item"><i class="swatch swatch-hit"></i> capture found</span>
+        <span class="legend-item"><i class="swatch swatch-gap"></i> gap</span>
+        <span class="legend-item"><i class="swatch swatch-sel"></i> selected</span>
+      </div>
+    </div>
+
+    <div class="timeline-shell">
+      <div class="timeline" id="timeline" aria-label="Archive coverage by year">
+        <p class="timeline-empty" id="timeline-empty">Run a lookup to chart archive coverage across the years.</p>
+      </div>
+      <div class="scrubber">
+        <input type="range" id="year-scrub" min="1996" max="2026" value="2026" step="1" aria-label="Scrub through years" />
+        <output id="scrub-label" for="year-scrub">2026</output>
+      </div>
+    </div>
+  </section>
+
+  <section class="how" id="how" aria-labelledby="how-title">
+    <div class="how-head">
+      <p class="section-label">The pipeline</p>
+      <h2 id="how-title">What "compatibility layer" actually means</h2>
+    </div>
+    <div class="how-grid">
+      <article class="how-card">
+        <span class="how-index">01</span>
+        <h3>Canonicalize</h3>
+        <p>Bare domains, mixed case hosts, tracking parameters, archive-style links — all normalized into one clean, queryable URL before anything is fetched.</p>
+      </article>
+      <article class="how-card">
+        <span class="how-index">02</span>
+        <h3>Locate</h3>
+        <p>Queries the Internet Archive availability index for your date, then retries scheme and <code>www</code> variants so an old http-only site still resolves.</p>
+      </article>
+      <article class="how-card">
+        <span class="how-index">03</span>
+        <h3>Replay</h3>
+        <p>The nearest capture opens in a sealed viewer. The Wayback Machine rewrites the page's own links and assets, so internal navigation keeps working.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="api" id="api" aria-labelledby="api-title">
+    <div class="api-inner">
+      <div class="api-copy">
+        <p class="section-label">Take it with you</p>
+        <h2 id="api-title">A rescue button for every dead link</h2>
+        <p>
+          Drag this bookmarklet to your bookmarks bar. Hit it on any broken page and REWIND hands the
+          URL to the Wayback Machine instantly — no copy-pasting, no extension required.
+        </p>
+        <div class="bookmarklet-row">
+          <a class="bookmarklet" id="bookmarklet" href="https://web.archive.org/" title="Drag me to your bookmarks bar">📼 Rewind this page</a>
+          <button class="btn btn-ghost" id="btn-copy-bookmarklet">Copy code</button>
+        </div>
+        <p class="api-note">Uses the public <code>archive.org/wayback/available</code> endpoint. No key, no account, no server of ours in the middle.</p>
+      </div>
+      <div class="api-code">
+        <div class="code-head">
+          <span>availability request</span>
+          <button class="panel-action" id="btn-copy-curl">Copy</button>
+        </div>
+        <pre><code id="curl-code">curl "https://archive.org/wayback/available?url=example.com&timestamp=20100101"</code></pre>
+        <div class="code-head">
+          <span>response</span>
+        </div>
+        <pre><code>{
+  "url": "example.com",
+  "archived_snapshots": {
+    "closest": {
+      "status": "200",
+      "available": true,
+      "timestamp": "20100101184356",
+      "url": "http://web.archive.org/web/20100101184356/http://example.com/"
+    }
+  }
+}</code></pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>REWIND is an independent front-end for the Internet Archive's public Wayback API.</p>
+  <p class="footer-links">
+    <a href="https://web.archive.org/" target="_blank" rel="noopener noreferrer">web.archive.org</a>
+    <a href="https://archive.org/developers/" target="_blank" rel="noopener noreferrer">Wayback API docs</a>
+    <a href="https://github.com/pookie3771-arch/PlayGround" target="_blank" rel="noopener noreferrer">Source</a>
+  </p>
+</footer>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
